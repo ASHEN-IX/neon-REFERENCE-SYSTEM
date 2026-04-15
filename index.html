@@ -1,0 +1,436 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PERSONNEL CROSS-REFERENCE SYSTEM — PHASE 4</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background: linear-gradient(135deg, #0a0e27 0%, #16213e 50%, #0f3460 100%);
+            font-family: 'Courier New', monospace;
+            color: #00ff88;
+            overflow: hidden;
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            line-height: 1.6;
+        }
+
+        /* Scanline effect */
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: repeating-linear-gradient(
+                0deg,
+                rgba(0, 0, 0, 0.15),
+                rgba(0, 0, 0, 0.15) 1px,
+                transparent 1px,
+                transparent 2px
+            );
+            pointer-events: none;
+            z-index: 10;
+        }
+
+        .container {
+            width: 90%;
+            max-width: 1000px;
+            background: rgba(10, 14, 39, 0.9);
+            border: 3px solid #00ff88;
+            box-shadow: 
+                0 0 20px rgba(0, 255, 136, 0.4),
+                inset 0 0 20px rgba(0, 255, 136, 0.1),
+                0 0 50px rgba(0, 100, 255, 0.2);
+            padding: 30px;
+            border-radius: 5px;
+            height: 80vh;
+            display: flex;
+            flex-direction: column;
+            position: relative;
+            z-index: 1;
+        }
+
+        .terminal-header {
+            border-bottom: 2px solid #00ff88;
+            padding-bottom: 15px;
+            margin-bottom: 20px;
+            font-weight: bold;
+            text-shadow: 0 0 10px rgba(0, 255, 136, 0.8);
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { text-shadow: 0 0 10px rgba(0, 255, 136, 0.8); }
+            50% { text-shadow: 0 0 20px rgba(0, 255, 136, 1); }
+        }
+
+        .status-bar {
+            display: flex;
+            justify-content: space-between;
+            font-size: 12px;
+            color: #00ccff;
+            margin-bottom: 20px;
+            padding: 10px;
+            background: rgba(0, 50, 100, 0.3);
+            border-left: 3px solid #00ccff;
+        }
+
+        .display-area {
+            flex: 1;
+            background: rgba(0, 20, 40, 0.5);
+            border: 1px solid #00ff8844;
+            padding: 20px;
+            margin-bottom: 20px;
+            overflow-y: auto;
+            font-size: 14px;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+        }
+
+        .display-area::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        .display-area::-webkit-scrollbar-thumb {
+            background: #00ff88;
+            border-radius: 4px;
+        }
+
+        .input-section {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .prompt {
+            white-space: nowrap;
+            color: #00ccff;
+            font-weight: bold;
+        }
+
+        input {
+            flex: 1;
+            background: transparent;
+            border: none;
+            border-bottom: 1px solid #00ff88;
+            color: #00ff88;
+            font-family: 'Courier New', monospace;
+            font-size: 16px;
+            outline: none;
+            caret-color: #00ff88;
+        }
+
+        input::placeholder {
+            color: #00664488;
+        }
+
+        .log-entry {
+            margin: 12px 0;
+            padding: 8px;
+            border-left: 2px solid #ff0080;
+            background: rgba(255, 0, 128, 0.05);
+        }
+
+        .log-entry.success {
+            border-left-color: #00ff88;
+            background: rgba(0, 255, 136, 0.05);
+            color: #00ff88;
+        }
+
+        .log-entry.info {
+            border-left-color: #00ccff;
+            background: rgba(0, 204, 255, 0.05);
+            color: #00ccff;
+        }
+
+        .log-entry.warning {
+            border-left-color: #ffff00;
+            background: rgba(255, 255, 0, 0.05);
+            color: #ffff88;
+        }
+
+        .log-entry.error {
+            border-left-color: #ff3333;
+            background: rgba(255, 51, 51, 0.05);
+            color: #ff6666;
+        }
+
+        .log-title {
+            font-weight: bold;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            margin-bottom: 8px;
+        }
+
+        .data-match {
+            background: rgba(0, 255, 136, 0.15);
+            border: 2px solid #00ff88;
+            padding: 15px;
+            margin-top: 20px;
+            border-radius: 3px;
+            font-weight: bold;
+        }
+
+        .data-field {
+            margin: 8px 0;
+            font-size: 14px;
+            letter-spacing: 1px;
+        }
+
+        .data-label {
+            color: #00ccff;
+            font-size: 11px;
+            text-transform: uppercase;
+        }
+
+        .verified {
+            color: #00ff88;
+            animation: pulse 1s infinite;
+        }
+
+        .glitch-effect {
+            animation: glitch 0.3s;
+        }
+
+        @keyframes glitch {
+            0% { transform: translate(0); }
+            20% { transform: translate(-2px, 2px); }
+            40% { transform: translate(-2px, -2px); }
+            60% { transform: translate(2px, 2px); }
+            80% { transform: translate(2px, -2px); }
+            100% { transform: translate(0); }
+        }
+
+        .header-line {
+            text-align: center;
+            margin-bottom: 10px;
+            color: #ff0080;
+            text-shadow: 0 0 10px rgba(255, 0, 128, 0.5);
+            font-size: 12px;
+        }
+
+        .hint-text {
+            color: #00664488;
+            font-size: 12px;
+            margin-top: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="terminal-header">
+            > PERSONNEL_CROSS_REFERENCE_SYSTEM v2.4.1
+        </div>
+
+        <div class="status-bar">
+            <span>ACCESS LEVEL: Investigator</span>
+            <span>NODE: HR-DATABASE-CENTRAL</span>
+            <span id="status">STANDBY</span>
+        </div>
+
+        <div class="display-area" id="displayArea">
+            <div class="header-line">█ PERSONNEL IDENTIFICATION SYSTEM █</div>
+            <br>
+            <div>Personnel cross-reference database initialized.</div>
+            <div style="margin-top: 10px; color: #00ccff; font-size: 12px;">
+                Type personnel name to cross-reference with security logs.
+            </div>
+            <div style="margin-top: 10px; color: #00664488; font-size: 12px;">
+                Connecting Phase 3 incident logs with active personnel records...
+            </div>
+        </div>
+
+        <div class="input-section">
+            <span class="prompt">></span>
+            <input type="text" id="commandInput" placeholder="enter name to cross-reference..." autocomplete="off">
+        </div>
+    </div>
+
+    <script>
+        const displayArea = document.getElementById('displayArea');
+        const commandInput = document.getElementById('commandInput');
+        const statusBar = document.getElementById('status');
+
+        const targetName = 'elias morrow';
+        const alternateAttempts = ['elias', 'morrow', 'e. morrow', 'research assistant', 'a-17'];
+
+        function addOutput(text, className = '') {
+            const div = document.createElement('div');
+            if (className) {
+                div.className = `log-entry ${className}`;
+                div.innerHTML = text;
+            } else {
+                div.textContent = text;
+            }
+            displayArea.appendChild(div);
+            displayArea.scrollTop = displayArea.scrollHeight;
+        }
+
+        function glitchEffect() {
+            displayArea.classList.add('glitch-effect');
+            setTimeout(() => displayArea.classList.remove('glitch-effect'), 300);
+        }
+
+        function revealIdentity() {
+            glitchEffect();
+            addOutput('\nEXECUTING CROSS-REFERENCE QUERY...\n', 'warning');
+            
+            setTimeout(() => {
+                addOutput('ACCESSING PERSONNEL DATABASE...', 'info');
+                addOutput('CORRELATING WITH PHASE 3 INCIDENT LOGS...', 'info');
+            }, 500);
+
+            setTimeout(() => {
+                addOutput('\n', '');
+                addOutput('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━', 'success');
+                addOutput('IDENTITY MATCH CONFIRMED', 'success');
+                addOutput('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━', 'success');
+                addOutput('\n', '');
+                
+                const matchEntry = `
+<span class="log-title">Personnel Match: ELIAS MORROW</span>
+Full Name: Elias Morrow
+Department: Lab Support - Chemical Analysis
+Role: Research Assistant
+Primary Assignment: Lab Sector 3 Chemical Storage
+Status: ACTIVE
+
+<span style="color: #ffff00; margin-top: 10px; display: block;">
+ACCESS CORRELATION:
+A-17 (Incident Log ID) = Elias Morrow (Clearance Level A-17)
+Location Match: Lab Sector 3 ✓
+Time of Access: 23:47:12 ✓
+</span>
+
+Unauthorized Access Status: CONFIRMED
+Chemical Storage Access: GRANTED (by clearance A-17)
+Authorization: VALID ACCESS CODE (but suspicious timing)`;
+
+                addOutput(matchEntry, 'success');
+
+                setTimeout(() => {
+                    addOutput('\n\n', '');
+                    const dataMatch = document.createElement('div');
+                    dataMatch.className = 'data-match';
+                    dataMatch.innerHTML = `
+<div style="margin-bottom: 15px; letter-spacing: 2px;">
+✓ IDENTITY VERIFIED ✓
+</div>
+<div class="data-label">PERSONNEL PROFILE:</div>
+<div class="data-field">NAME: ELIAS MORROW</div>
+<div class="data-field">ROLE: RESEARCH ASSISTANT</div>
+<div class="data-field">CLEARANCE: A-17</div>
+<div style="margin-top: 15px; font-size: 12px; letter-spacing: 1px;">
+✓ Phase 4 Complete
+✓ Identity Established: A-17 = Elias Morrow
+✓ Preparing Phase 5 Investigation...
+</div>`;
+                    displayArea.appendChild(dataMatch);
+                    displayArea.scrollTop = displayArea.scrollHeight;
+                    statusBar.innerHTML = '<span style="color: #00ff88;">✓ SUCCESS</span>';
+                    commandInput.disabled = true;
+                    commandInput.style.borderBottomColor = '#00ff88';
+                }, 800);
+            }, 1000);
+        }
+
+        function handleQuery(input) {
+            const normalized = input.toLowerCase().trim();
+
+            addOutput(`> ${input}`, '');
+
+            if (normalized === '') {
+                return;
+            }
+
+            // Help command
+            if (normalized === 'help') {
+                addOutput('\n', '');
+                addOutput('Query Format: <first name> <last name>', 'info');
+                addOutput('Examples: "elias morrow", "john smith"', 'info');
+                addOutput('\nTip: Cross-reference with Phase 3 logs.', 'info');
+                addOutput('Hint: Look for personnel with A-17 clearance.', 'hint-text');
+                return;
+            }
+
+            // List command
+            if (normalized === 'list personnel') {
+                addOutput('Personnel records (public):', 'info');
+                addOutput('  - Dr. Kessler (Lead Scientist)', 'info');
+                addOutput('  - Marcus Vale (Security Chief)', 'info');
+                addOutput('  - Elias Morrow (Research Assistant)', 'info');
+                addOutput('  - Dr. Lian (Test Subject Coordinator)', 'info');
+                return;
+            }
+
+            // Clear command
+            if (normalized === 'clear') {
+                displayArea.innerHTML = '';
+                return;
+            }
+
+            // Correct query - full name
+            if (normalized === targetName || 
+                normalized === 'query elias morrow' ||
+                normalized === 'search elias morrow') {
+                revealIdentity();
+                return;
+            }
+
+            // Partial matches - guidance
+            if (normalized === 'elias' || normalized === 'morrow' || 
+                normalized === 'e. morrow' || normalized === 'elias m.') {
+                addOutput('Partial match detected. Enter full name for cross-reference.', 'warning');
+                addOutput('[Hint: First name is Elias, last name is Morrow]', 'hint-text');
+                return;
+            }
+
+            // A-17 reference
+            if (normalized === 'a-17' || normalized === 'search a-17' || 
+                normalized === 'clearance a-17') {
+                addOutput('A-17 is a clearance level, not a name.', 'info');
+                addOutput('Find the personnel who has A-17 clearance.', 'warning');
+                addOutput('[Personnel with A-17: Research Assistant in Lab Sector 3]', 'hint-text');
+                return;
+            }
+
+            // Research Assistant reference
+            if (normalized === 'research assistant' || normalized === 'assistant') {
+                addOutput('Role found in personnel records.', 'info');
+                addOutput('Elias Morrow holds this position.', 'warning');
+                addOutput('Query personnel name for full cross-reference.', 'info');
+                return;
+            }
+
+            // Wrong name
+            if (normalized.length > 3) {
+                addOutput('No personnel match. Check spelling.', 'error');
+                addOutput('[Tip: Try "list personnel" for available records]', 'hint-text');
+                return;
+            }
+
+            // Default
+            addOutput('Invalid query. Type "help" for query format.', 'error');
+        }
+
+        commandInput.addEventListener('keypress', function(event) {
+            if (event.key === 'Enter') {
+                handleQuery(this.value);
+                this.value = '';
+            }
+        });
+
+        commandInput.focus();
+    </script>
+</body>
+</html>
